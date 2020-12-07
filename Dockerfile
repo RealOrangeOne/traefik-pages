@@ -10,6 +10,8 @@ RUN cargo build --release
 
 FROM debian:buster-slim
 
+ENV PORT 5000
+
 COPY --from=builder /usr/src/traefik-pages/target/release/traefik-pages /usr/local/bin/traefik-pages
 
 ENTRYPOINT "/usr/local/bin/traefik-pages"
