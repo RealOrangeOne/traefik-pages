@@ -1,0 +1,9 @@
+[package]
+name = "traefik-pages"
+version = "0.1.0"
+authors = ["Jake Howard <git@theorangeone.net>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
