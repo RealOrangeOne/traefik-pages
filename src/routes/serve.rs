@@ -24,12 +24,13 @@ fn get_path(request: &HttpRequest) -> String {
 pub async fn serve_file(req: HttpRequest, config: web::Data<Config>) -> HttpResponse {
     let hostname = get_hostname(&req);
     let path = get_path(&req);
-    let file_path = resolve_file(&config.sites_root, hostname, path)
-        .await
-        .unwrap();
+    let file_path = match resolve_file(&config.sites_root, hostname, path).await {
+        Ok(p) => p,
+        Err(_) => return HttpResponse::NotFound().finish(),
+    };
     NamedFile::open(file_path)
         .expect("Failed to open file")
         .disable_content_disposition()
         .into_response(&req)
-        .unwrap()
+        .expect("Failed to turn file into response")
 }
