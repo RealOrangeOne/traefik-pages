@@ -11,6 +11,7 @@ actix-web = "3"
 env_logger = "0.8.2"
 log = "0.4.11"
 tokio = { version = "0.2.6", features = ["fs"] }
+actix-files = "0.4.1"
 
 [dev-dependencies]
 tokio = { version = "0.2.6", features = ["macros"] }
