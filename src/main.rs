@@ -2,6 +2,7 @@ use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer};
 use env_logger::Env;
 
+mod files;
 mod utils;
 
 #[actix_web::main]
