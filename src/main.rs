@@ -5,13 +5,19 @@ use env_logger::Env;
 mod files;
 mod utils;
 
-#[actix_web::main]
+#[tokio::main]
 async fn main() -> std::io::Result<()> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
-    HttpServer::new(move || App::new().wrap(Logger::default()))
+    let local = tokio::task::LocalSet::new();
+    let sys = actix_web::rt::System::run_in_tokio("server", &local);
+
+    let server_res = HttpServer::new(move || App::new().wrap(Logger::default()))
         .workers(utils::get_workers())
         .bind(format!("0.0.0.0:{}", utils::get_port()))?
         .run()
-        .await
+        .await?;
+    sys.await?;
+
+    Ok(server_res)
 }
