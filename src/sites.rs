@@ -2,7 +2,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use tokio::fs;
 
-async fn get_sites(sites_root: impl AsRef<Path>) -> io::Result<Vec<PathBuf>> {
+pub async fn get_sites(sites_root: impl AsRef<Path>) -> io::Result<Vec<PathBuf>> {
     let mut sites = vec![];
 
     let mut entries = fs::read_dir(sites_root).await?;
@@ -16,7 +16,7 @@ async fn get_sites(sites_root: impl AsRef<Path>) -> io::Result<Vec<PathBuf>> {
     Ok(sites)
 }
 
-fn get_hostname(site_root: impl AsRef<Path>) -> String {
+pub fn get_hostname(site_root: impl AsRef<Path>) -> String {
     site_root
         .as_ref()
         .file_name()
