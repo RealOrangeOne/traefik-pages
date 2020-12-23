@@ -1,5 +1,5 @@
 use actix_web::middleware::Logger;
-use actix_web::{web, App, HttpServer};
+use actix_web::{App, HttpServer};
 use env_logger::Env;
 use std::env;
 use std::path::PathBuf;
@@ -7,7 +7,7 @@ use std::process::exit;
 
 mod config;
 mod files;
-mod serve;
+mod routes;
 mod utils;
 
 fn get_sites_root() -> Option<PathBuf> {
@@ -36,7 +36,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default())
             .data(app_config.clone())
-            .route("/{path:.*}", web::route().to(serve::serve_file))
+            .service(routes::get_routes())
     })
     .workers(utils::get_workers())
     .bind(format!("0.0.0.0:{}", utils::get_port()))?
