@@ -8,7 +8,7 @@ use std::process::exit;
 mod config;
 mod files;
 mod routes;
-mod sites;
+mod site;
 mod utils;
 
 fn get_sites_root() -> Option<PathBuf> {
