@@ -12,6 +12,8 @@ env_logger = "0.8.2"
 log = "0.4.11"
 tokio = { version = "0.2.6", features = ["fs"] }
 actix-files = "0.4.1"
+serde_json = "1.0.59"
+serde = "1.0.116"
 
 [dev-dependencies]
 tokio = { version = "0.2.6", features = ["macros"] }

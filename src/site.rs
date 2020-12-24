@@ -42,6 +42,14 @@ impl Site {
     pub async fn get_file(&self, path: impl AsRef<Path>) -> io::Result<PathBuf> {
         safe_join(&self.root, path).await
     }
+
+    pub fn router_name(&self) -> String {
+        format!("router-{}", self.get_hostname().replace(".", "-"))
+    }
+
+    pub fn service_name(&self) -> String {
+        format!("service-{}", self.get_hostname().replace(".", "-"))
+    }
 }
 
 #[cfg(test)]
