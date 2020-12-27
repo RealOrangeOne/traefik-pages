@@ -1,9 +1,7 @@
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer};
 use env_logger::Env;
-use std::env;
 use std::path::PathBuf;
-use std::process::exit;
 
 mod config;
 mod files;
@@ -11,22 +9,19 @@ mod routes;
 mod site;
 mod utils;
 
-fn get_sites_root() -> Option<PathBuf> {
-    let sites_root_env = env::var("SITES_ROOT").ok()?;
-    PathBuf::from(sites_root_env).canonicalize().ok()
+fn get_sites_root() -> PathBuf {
+    let sites_root_env = utils::get_env_or_default("SITES_ROOT", None);
+    match PathBuf::from(sites_root_env).canonicalize() {
+        Ok(p) => p,
+        Err(_) => utils::log_error_and_quit("Invalid site root."),
+    }
 }
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
-    let sites_root = match get_sites_root() {
-        Some(p) => p,
-        None => {
-            log::error!("Invalid sites root");
-            exit(1);
-        }
-    };
+    let sites_root = get_sites_root();
 
     let app_config = config::Config { sites_root };
 

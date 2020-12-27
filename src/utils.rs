@@ -1,15 +1,31 @@
+use log::error;
 use std::env;
+use std::process::exit;
+
+pub fn log_error_and_quit(msg: &str) -> ! {
+    error!("{}", msg);
+    exit(1);
+}
+
+#[inline]
+pub fn get_env_or_default(var_name: &str, default: Option<&str>) -> String {
+    match env::var(var_name)
+        .ok()
+        .or_else(|| default.map(String::from))
+    {
+        Some(v) => v,
+        None => log_error_and_quit(&format!("Missing required env var {}.", var_name)),
+    }
+}
 
 pub fn get_port() -> u16 {
-    env::var("PORT")
-        .unwrap_or_else(|_| "5000".into())
+    get_env_or_default("PORT", Some("5000"))
         .parse::<u16>()
         .expect("Invalid port number")
 }
 
 pub fn get_workers() -> usize {
-    env::var("WORKERS")
-        .unwrap_or_else(|_| "1".into())
+    get_env_or_default("WORKERS", Some("1"))
         .parse::<usize>()
         .expect("Invalid worker count")
 }
