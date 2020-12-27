@@ -10,10 +10,17 @@ fn get_router_name(site: &Site) -> String {
 
 /// Routers look funny, so no point defining as a struct
 fn serialize_router(site: &Site, config: &Config) -> Value {
-    json!({
+    let mut router = json!({
         "rule": format!("Host(`{}`)", site.get_hostname()),
         "service": &config.traefik_service
-    })
+    });
+    if let Some(cert_resolver) = &config.traefik_cert_resolver {
+        router.as_object_mut().unwrap().insert(
+            String::from("tls"),
+            json!({ "certResolver": cert_resolver }),
+        );
+    }
+    router
 }
 
 pub async fn traefik_provider(config: web::Data<Config>) -> HttpResponse {
@@ -25,6 +32,7 @@ pub async fn traefik_provider(config: web::Data<Config>) -> HttpResponse {
         .iter()
         .map(|s| (get_router_name(s), serialize_router(s, &config)))
         .collect();
+
     HttpResponse::Ok().json(json!({
         "http": {
             "routers": routers,

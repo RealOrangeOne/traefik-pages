@@ -1,6 +1,7 @@
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer};
 use env_logger::Env;
+use std::env;
 use std::path::PathBuf;
 
 mod config;
@@ -24,6 +25,7 @@ async fn main() -> std::io::Result<()> {
     let app_config = config::Config {
         sites_root: get_sites_root(),
         traefik_service: utils::get_env_or_default("TRAEFIK_SERVICE", None),
+        traefik_cert_resolver: env::var("TRAEFIK_CERT_RESOLVER").ok(),
     };
 
     let local = tokio::task::LocalSet::new();
