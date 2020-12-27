@@ -95,4 +95,25 @@ mod tests {
         let example_site = Site::from(get_example_dir().join("localhost"));
         assert_eq!(get_router_name(&example_site), "router-localhost");
     }
+
+    #[test]
+    fn test_serialize_router() {
+        let example_site = Site::from(get_example_dir().join("localhost"));
+        let config = Config {
+            sites_root: get_example_dir(),
+            traefik_service: String::from("traefik-service@docker"),
+            traefik_cert_resolver: Some(String::from("le")),
+        };
+        assert_eq!(
+            serialize_router(&example_site, &config),
+            json!({
+                "middlewares": [DEFAULT_MIDDLEWARE_NAME],
+                "rule": "Host(`localhost`)",
+                "service": "traefik-service@docker",
+                "tls": {
+                    "certResolver": "le"
+                }
+            })
+        );
+    }
 }
