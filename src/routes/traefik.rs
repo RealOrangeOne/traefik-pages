@@ -69,6 +69,14 @@ pub async fn traefik_provider(config: web::Data<Config>) -> HttpResponse {
 mod tests {
     use super::*;
 
+    use crate::site::Site;
+    use std::env::current_dir;
+    use std::path::PathBuf;
+
+    fn get_example_dir() -> PathBuf {
+        current_dir().unwrap().join("example")
+    }
+
     #[test]
     fn test_default_middleware() {
         let middleware = get_middleware();
@@ -80,5 +88,11 @@ mod tests {
         for m in chain_middlewares.iter() {
             assert!(middleware.get(m.as_str().unwrap()).is_some());
         }
+    }
+
+    #[test]
+    fn test_router_name() {
+        let example_site = Site::from(get_example_dir().join("localhost"));
+        assert_eq!(get_router_name(&example_site), "router-localhost");
     }
 }
