@@ -1,27 +1,19 @@
 use crate::config::Config;
 use crate::site::Site;
 use actix_web::{web, HttpResponse};
-use serde::Serialize;
-use serde_json::json;
+use serde_json::{json, Value};
 use std::collections::HashMap;
 
 fn get_router_name(site: &Site) -> String {
     format!("router-{}", site.get_hostname().replace(".", "-"))
 }
 
-#[derive(Serialize, Debug)]
-struct Router {
-    rule: String,
-    service: String,
-}
-
-impl Router {
-    fn new(site: &Site, config: &Config) -> Self {
-        Router {
-            rule: format!("Host(`{}`)", site.get_hostname()),
-            service: config.traefik_service.clone(),
-        }
-    }
+/// Routers look funny, so no point defining as a struct
+fn serialize_router(site: &Site, config: &Config) -> Value {
+    json!({
+        "rule": format!("Host(`{}`)", site.get_hostname()),
+        "service": &config.traefik_service
+    })
 }
 
 pub async fn traefik_provider(config: web::Data<Config>) -> HttpResponse {
@@ -29,9 +21,9 @@ pub async fn traefik_provider(config: web::Data<Config>) -> HttpResponse {
         Ok(s) => s,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
-    let routers: HashMap<String, Router> = sites
+    let routers: HashMap<String, Value> = sites
         .iter()
-        .map(|s| (get_router_name(s), Router::new(s, &config)))
+        .map(|s| (get_router_name(s), serialize_router(s, &config)))
         .collect();
     HttpResponse::Ok().json(json!({
         "http": {
