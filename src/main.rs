@@ -21,9 +21,10 @@ fn get_sites_root() -> PathBuf {
 async fn main() -> std::io::Result<()> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
-    let sites_root = get_sites_root();
-
-    let app_config = config::Config { sites_root };
+    let app_config = config::Config {
+        sites_root: get_sites_root(),
+        traefik_service: utils::get_env_or_default("TRAEFIK_SERVICE", None),
+    };
 
     let local = tokio::task::LocalSet::new();
     let sys = actix_web::rt::System::run_in_tokio("server", &local);

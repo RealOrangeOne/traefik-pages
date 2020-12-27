@@ -46,10 +46,6 @@ impl Site {
     pub fn router_name(&self) -> String {
         format!("router-{}", self.get_hostname().replace(".", "-"))
     }
-
-    pub fn service_name(&self) -> String {
-        format!("service-{}", self.get_hostname().replace(".", "-"))
-    }
 }
 
 #[cfg(test)]

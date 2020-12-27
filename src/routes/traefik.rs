@@ -11,21 +11,12 @@ struct Router {
     service: String,
 }
 
-impl From<&Site> for Router {
-    fn from(site: &Site) -> Self {
+impl Router {
+    fn new(site: &Site, config: &Config) -> Self {
         Router {
             rule: site.get_hostname(),
-            service: site.service_name(),
+            service: config.traefik_service.clone(),
         }
-    }
-}
-
-#[derive(Serialize, Debug)]
-struct Service {}
-
-impl From<&Site> for Service {
-    fn from(_site: &Site) -> Self {
-        Service {}
     }
 }
 
@@ -36,16 +27,11 @@ pub async fn traefik_provider(config: web::Data<Config>) -> HttpResponse {
     };
     let routers: HashMap<String, Router> = sites
         .iter()
-        .map(|s| (s.router_name(), Router::from(s)))
-        .collect();
-    let services: HashMap<String, Service> = sites
-        .iter()
-        .map(|s| (s.service_name(), Service::from(s)))
+        .map(|s| (s.router_name(), Router::new(s, &config)))
         .collect();
     HttpResponse::Ok().json(json!({
         "http": {
             "routers": routers,
-            "services": services
         }
     }))
 }
