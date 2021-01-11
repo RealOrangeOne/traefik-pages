@@ -4,6 +4,7 @@ use env_logger::Env;
 use std::env;
 use std::path::PathBuf;
 
+mod auth;
 mod config;
 mod files;
 mod routes;
@@ -26,6 +27,7 @@ async fn main() -> std::io::Result<()> {
         sites_root: get_sites_root(),
         traefik_service: utils::get_env_or_default("TRAEFIK_SERVICE", None),
         traefik_cert_resolver: env::var("TRAEFIK_CERT_RESOLVER").ok(),
+        auth_password: utils::get_env_or_default("AUTH_PASSWORD", None),
     };
 
     let local = tokio::task::LocalSet::new();
@@ -35,7 +37,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default())
             .data(app_config.clone())
-            .service(routes::get_routes())
+            .service(routes::get_routes(&app_config))
     })
     .workers(utils::get_workers())
     .bind(format!("0.0.0.0:{}", utils::get_port()))?

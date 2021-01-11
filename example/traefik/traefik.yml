@@ -13,7 +13,7 @@ providers:
     exposedByDefault: false
   http:
     endpoint:
-      - "http://127.0.0.1:5000/.traefik-pages/provider"
+      - "http://password@127.0.0.1:5000/.traefik-pages/provider"
   file:
     filename: /etc/traefik/file-provider.yml
 

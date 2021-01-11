@@ -3,17 +3,20 @@ mod health;
 mod serve;
 mod sites;
 mod traefik;
+use crate::auth::BasicAuthGuard;
+use crate::config::Config;
 
-fn get_internal_routes() -> Scope {
+fn get_internal_routes(config: &Config) -> Scope {
     web::scope(".traefik-pages")
+        .guard(BasicAuthGuard::new(config.auth_password.clone()))
         .route("/health", web::route().to(health::health))
         .route("/sites", web::get().to(sites::sites_list))
         .route("/provider", web::get().to(traefik::traefik_provider))
 }
 
-pub fn get_routes() -> Scope {
+pub fn get_routes(config: &Config) -> Scope {
     web::scope("")
-        .service(get_internal_routes())
+        .service(get_internal_routes(config))
         // This must go at the end
         .route("/{path:.*}", web::route().to(serve::serve_file))
 }
