@@ -49,6 +49,8 @@ mod tests {
     use super::*;
 
     use std::env::current_dir;
+    use std::fs::File;
+    use std::io::Read;
 
     fn get_example_dir() -> PathBuf {
         current_dir().unwrap().join("example/sites")
@@ -57,13 +59,13 @@ mod tests {
     #[tokio::test]
     async fn test_discover_all() {
         let sites = Site::discover_all(get_example_dir()).await.unwrap();
-        assert_eq!(sites.len(), 1);
+        assert_eq!(sites.len(), 2);
         assert_eq!(
             sites
                 .iter()
                 .map(Site::get_hostname)
                 .collect::<Vec<String>>(),
-            vec!["localhost"]
+            vec!["localhost", "site1.localhost"]
         );
     }
 
@@ -73,6 +75,22 @@ mod tests {
 
         assert!(site.get_file("index.html").await.is_ok());
         assert!(site.get_file("missing.html").await.is_err());
+
+        assert_eq!(
+            site.get_file("index.html").await.unwrap(),
+            get_example_dir().join("localhost/index.html")
+        );
+    }
+
+    #[tokio::test]
+    async fn test_get_file_content() {
+        let site = Site::from(get_example_dir().join("localhost"));
+
+        let mut file = File::open(site.get_file("index.html").await.unwrap()).unwrap();
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).unwrap();
+
+        assert_eq!(contents, "localhost index\n");
     }
 
     #[test]
