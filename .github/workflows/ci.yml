@@ -42,7 +42,7 @@ jobs:
           command: build
           args: --release
 
-  lint:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
