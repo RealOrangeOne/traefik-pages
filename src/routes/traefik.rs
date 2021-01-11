@@ -103,6 +103,7 @@ mod tests {
             sites_root: get_example_dir(),
             traefik_service: String::from("traefik-service@docker"),
             traefik_cert_resolver: Some(String::from("le")),
+            auth_password: String::default(),
         };
         assert_eq!(
             serialize_router(&example_site, &config),
