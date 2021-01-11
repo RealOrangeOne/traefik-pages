@@ -1,0 +1,22 @@
+entryPoints:
+  web:
+    address: ":80"
+  web-secure:
+    address: ":443"
+
+ping: {}
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    watch: true
+    exposedByDefault: false
+  http:
+    endpoint:
+      - "http://127.0.0.1:5000/.traefik-pages/provider"
+  file:
+    filename: /etc/traefik/file-provider.yml
+
+api:
+  dashboard: true
+  insecure: true

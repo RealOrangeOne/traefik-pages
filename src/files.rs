@@ -34,7 +34,7 @@ mod tests {
     use std::env::current_dir;
 
     fn get_example_dir() -> PathBuf {
-        current_dir().unwrap().join("example")
+        current_dir().unwrap().join("example/sites")
     }
 
     #[test]
@@ -61,7 +61,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_resolve_fail_traversal() {
-        let resolve_err = safe_join(get_example_dir(), "../Cargo.toml")
+        let resolve_err = safe_join(get_example_dir(), "../../Cargo.toml")
             .await
             .unwrap_err();
         assert_eq!(resolve_err.kind(), io::ErrorKind::InvalidInput);

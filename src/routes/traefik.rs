@@ -74,7 +74,7 @@ mod tests {
     use std::path::PathBuf;
 
     fn get_example_dir() -> PathBuf {
-        current_dir().unwrap().join("example")
+        current_dir().unwrap().join("example/sites")
     }
 
     #[test]
