@@ -6,8 +6,10 @@ mod traefik;
 use crate::auth::BasicAuthGuard;
 use crate::config::Config;
 
+pub const INTERNAL_ROUTE_PREFIX: &str = ".traefik-pages";
+
 fn get_internal_routes(config: &Config) -> Scope {
-    web::scope(".traefik-pages")
+    web::scope(INTERNAL_ROUTE_PREFIX)
         .guard(BasicAuthGuard::new(config.auth_password.clone()))
         .route("/health", web::route().to(health::health))
         .route("/sites", web::get().to(sites::sites_list))

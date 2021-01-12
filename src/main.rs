@@ -19,6 +19,16 @@ fn get_sites_root() -> PathBuf {
     }
 }
 
+fn get_logger() -> Logger {
+    let logger = Logger::new(r#"%{r}a "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#);
+
+    if env::var("LOG_INTERNAL").is_ok() {
+        return logger;
+    }
+
+    logger.exclude_regex(format!(r#"\{}"#, routes::INTERNAL_ROUTE_PREFIX))
+}
+
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
@@ -35,9 +45,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .wrap(Logger::new(
-                "%{r}a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T",
-            ))
+            .wrap(get_logger())
             .data(app_config.clone())
             .service(routes::get_routes(&app_config))
     })
