@@ -60,13 +60,12 @@ mod tests {
     async fn test_discover_all() {
         let sites = Site::discover_all(get_example_dir()).await.unwrap();
         assert_eq!(sites.len(), 2);
-        assert_eq!(
-            sites
-                .iter()
-                .map(Site::get_hostname)
-                .collect::<Vec<String>>(),
-            vec!["localhost", "site1.localhost"]
-        );
+        let site_hostnames = sites
+            .iter()
+            .map(Site::get_hostname)
+            .collect::<Vec<String>>();
+        assert!(site_hostnames.contains(&String::from("localhost")));
+        assert!(site_hostnames.contains(&String::from("site1.localhost")));
     }
 
     #[tokio::test]
