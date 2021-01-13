@@ -12,7 +12,7 @@ mod routes;
 mod site;
 mod utils;
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn get_sites_root() -> PathBuf {
     let sites_root_env = utils::get_env_or_default("SITES_ROOT", None);
