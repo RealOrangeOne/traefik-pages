@@ -1,4 +1,4 @@
-use actix_web::middleware::{Compress, Logger};
+use actix_web::middleware::{Compress, DefaultHeaders, Logger};
 use actix_web::{App, HttpServer};
 use env_logger::Env;
 use std::env;
@@ -10,6 +10,8 @@ mod files;
 mod routes;
 mod site;
 mod utils;
+
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 fn get_sites_root() -> PathBuf {
     let sites_root_env = utils::get_env_or_default("SITES_ROOT", None);
@@ -52,6 +54,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(get_logger())
             .wrap(Compress::default())
+            .wrap(DefaultHeaders::new().header("Server", format!("traefik-pages {}", VERSION)))
             .data(app_config.clone())
             .service(routes::get_routes(&app_config))
     })
