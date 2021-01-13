@@ -1,4 +1,4 @@
-use actix_web::middleware::Logger;
+use actix_web::middleware::{Compress, Logger};
 use actix_web::{App, HttpServer};
 use env_logger::Env;
 use std::env;
@@ -51,6 +51,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(get_logger())
+            .wrap(Compress::default())
             .data(app_config.clone())
             .service(routes::get_routes(&app_config))
     })

@@ -31,13 +31,9 @@ fn get_middleware() -> Value {
         DEFAULT_MIDDLEWARE_NAME: {
             "chain": {
                 "middlewares": [
-                    "tp-compress",
                     "tp-retry"
                 ]
             }
-        },
-        "tp-compress": {
-            "compress": {}
         },
         "tp-retry": {
             "retry": {
@@ -84,7 +80,7 @@ mod tests {
         let chain_middlewares = default_middleware["chain"]["middlewares"]
             .as_array()
             .unwrap();
-        assert_eq!(chain_middlewares.len(), 2);
+        assert_eq!(chain_middlewares.len(), 1);
         for m in chain_middlewares.iter() {
             assert!(middleware.get(m.as_str().unwrap()).is_some());
         }
