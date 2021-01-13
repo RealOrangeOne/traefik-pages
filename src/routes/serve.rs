@@ -34,13 +34,12 @@ pub async fn serve_file(req: HttpRequest, config: web::Data<Config>) -> HttpResp
         return HttpResponse::NotFound().finish();
     }
 
-    let file_path = match site.get_file(&url_path).await {
-        Ok(p) => p,
+    match site.get_file(&url_path).await {
+        Ok(p) => NamedFile::open(p)
+            .expect("Failed to open file")
+            .disable_content_disposition()
+            .into_response(&req)
+            .expect("Failed to turn file into response"),
         Err(_) => return HttpResponse::NotFound().finish(),
-    };
-    NamedFile::open(file_path)
-        .expect("Failed to open file")
-        .disable_content_disposition()
-        .into_response(&req)
-        .expect("Failed to turn file into response")
+    }
 }
