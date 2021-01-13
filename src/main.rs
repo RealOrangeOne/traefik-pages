@@ -54,7 +54,11 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(get_logger())
             .wrap(Compress::default())
-            .wrap(DefaultHeaders::new().header("Server", format!("traefik-pages {}", VERSION)))
+            .wrap(
+                DefaultHeaders::new()
+                    .header("Server", format!("traefik-pages {}", VERSION))
+                    .header("cache-control", "max-age=0, must-revalidate, public"),
+            )
             .data(app_config.clone())
             .service(routes::get_routes(&app_config))
     })
