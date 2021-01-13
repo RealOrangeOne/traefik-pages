@@ -38,6 +38,11 @@ async fn main() -> std::io::Result<()> {
         traefik_service: utils::get_env_or_default("TRAEFIK_SERVICE", None),
         traefik_cert_resolver: env::var("TRAEFIK_CERT_RESOLVER").ok(),
         auth_password: utils::get_env_or_default("AUTH_PASSWORD", None),
+        deny_prefixes: utils::get_env_or_default("DENY_PREFIXES", Some(""))
+            .split(',')
+            .map(String::from)
+            .filter(|s| !s.is_empty())
+            .collect(),
     };
 
     let local = tokio::task::LocalSet::new();

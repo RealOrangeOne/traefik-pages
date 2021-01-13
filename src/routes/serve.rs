@@ -24,7 +24,17 @@ pub async fn serve_file(req: HttpRequest, config: web::Data<Config>) -> HttpResp
         None => return HttpResponse::NotFound().finish(),
     };
 
-    let file_path = match site.get_file(get_path(&req)).await {
+    let url_path = get_path(&req);
+
+    if config
+        .deny_prefixes
+        .iter()
+        .any(|prefix| url_path.starts_with(prefix))
+    {
+        return HttpResponse::NotFound().finish();
+    }
+
+    let file_path = match site.get_file(&url_path).await {
         Ok(p) => p,
         Err(_) => return HttpResponse::NotFound().finish(),
     };

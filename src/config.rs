@@ -8,4 +8,5 @@ pub struct Config {
     pub traefik_service: String,
     pub traefik_cert_resolver: Option<String>,
     pub auth_password: String,
+    pub deny_prefixes: Vec<String>,
 }

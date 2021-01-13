@@ -104,6 +104,7 @@ mod tests {
             traefik_service: String::from("traefik-service@docker"),
             traefik_cert_resolver: Some(String::from("le")),
             auth_password: String::default(),
+            deny_prefixes: Vec::new(),
         };
         assert_eq!(
             serialize_router(&example_site, &config),
