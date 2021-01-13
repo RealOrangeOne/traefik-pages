@@ -1,3 +1,4 @@
+use actix_web::http::header;
 use actix_web::middleware::{Compress, DefaultHeaders, Logger};
 use actix_web::{App, HttpServer};
 use env_logger::Env;
@@ -56,8 +57,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(Compress::default())
             .wrap(
                 DefaultHeaders::new()
-                    .header("Server", format!("traefik-pages {}", VERSION))
-                    .header("cache-control", "max-age=0, must-revalidate, public"),
+                    .header(header::SERVER, format!("traefik-pages {}", VERSION))
+                    .header(header::CACHE_CONTROL, "max-age=0, must-revalidate, public"),
             )
             .data(app_config.clone())
             .service(routes::get_routes(&app_config))
