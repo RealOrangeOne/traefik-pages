@@ -14,6 +14,8 @@ ENV PORT 5000
 
 EXPOSE 5000
 
+USER www-data
+
 COPY --from=builder /usr/src/traefik-pages/target/release/traefik-pages /usr/local/bin/traefik-pages
 
 ENTRYPOINT "/usr/local/bin/traefik-pages"
