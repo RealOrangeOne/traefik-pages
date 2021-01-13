@@ -74,15 +74,15 @@ Now, simply start Traefik and `traefik-pages`, and they should begin communicati
 
 Configuration for `traefik-pages` is done entirely through environment variables:
 
-`$SITES_ROOT`: Directory where sites are stored (required).
-`$TRAEFIK_SERVICE`: Service name for `traefik-pages`, where traffic will be routed (required).
-`$AUTH_PASSWORD`: Basic auth username required for access to private URLs (`/.traefik-pages/*`) (required).
+- `$SITES_ROOT`: Directory where sites are stored (required).
+- `$TRAEFIK_SERVICE`: Service name for `traefik-pages`, where traffic will be routed (required).
+- `$AUTH_PASSWORD`: Basic auth username required for access to private URLs (`/.traefik-pages/*`) (required).
 
-`$DENY_PREFIXES`: Comma-separated list of URL prefixes to ignore (immediately return 404). Empty by default.
-`$LOG_INTERNAL`: Whether to log requests for internal URLs (default false).
-`$TRAEFIK_CERT_RESOLVER`: Traefik certificate resolver to use to provision TLS certificates (by default no certificates will be requested).
-`$PORT`: Port to listen on (default 5000).
-`$WORKERS`: Number of worker processes to handle requests (default 1).
+- `$DENY_PREFIXES`: Comma-separated list of URL prefixes to ignore (immediately return 404). Empty by default.
+- `$LOG_INTERNAL`: Whether to log requests for internal URLs (default false).
+- `$TRAEFIK_CERT_RESOLVER`: Traefik certificate resolver to use to provision TLS certificates (by default no certificates will be requested).
+- `$PORT`: Port to listen on (default 5000).
+- `$WORKERS`: Number of worker processes to handle requests (default 1).
 
 ## Performance
 
