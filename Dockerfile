@@ -18,4 +18,4 @@ USER www-data
 
 COPY --from=builder /usr/src/traefik-pages/target/release/traefik-pages /usr/local/bin/traefik-pages
 
-ENTRYPOINT "/usr/local/bin/traefik-pages"
+ENTRYPOINT ["/usr/local/bin/traefik-pages"]
