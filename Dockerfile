@@ -18,4 +18,9 @@ USER www-data
 
 COPY --from=builder /usr/src/traefik-pages/target/release/traefik-pages /usr/local/bin/traefik-pages
 
+# For reasons I don't know, the application throws away SIGTERM. There's explicit actix code to handle it, but it doesn't do anything.
+# If you're reading this, and think you can help, please do!
+# Requests will be fast enough that a hard terminate shouldn't be the end of the world.
+STOPSIGNAL SIGKILL
+
 ENTRYPOINT ["/usr/local/bin/traefik-pages"]
