@@ -2,7 +2,6 @@ use std::io;
 use std::path::{Path, PathBuf};
 use tokio::fs::canonicalize;
 
-#[inline]
 pub async fn safe_join(base: impl AsRef<Path>, second: impl AsRef<Path>) -> io::Result<PathBuf> {
     let joined = canonicalize(base.as_ref().join(&second)).await?;
 

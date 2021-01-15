@@ -7,7 +7,6 @@ pub fn log_error_and_quit(msg: &str) -> ! {
     exit(1);
 }
 
-#[inline]
 pub fn get_env_or_default(var_name: &str, default: Option<&str>) -> String {
     match env::var(var_name)
         .ok()
