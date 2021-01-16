@@ -2,6 +2,11 @@ use crate::files::safe_join;
 use std::io;
 use std::path::{Path, PathBuf};
 use tokio::fs;
+use url::Host;
+
+pub fn is_valid_hostname(hostname: &str) -> bool {
+    !hostname.starts_with('.') && Host::parse(hostname).is_ok()
+}
 
 pub struct Site {
     root: PathBuf,
@@ -21,6 +26,7 @@ impl Site {
     }
 
     pub async fn from_hostname(sites_root: impl AsRef<Path>, hostname: String) -> Option<Site> {
+        debug_assert!(is_valid_hostname(hostname.as_str()));
         let site_root = safe_join(sites_root, hostname).await.ok()?;
         Some(Site::from(site_root))
     }
@@ -32,7 +38,11 @@ impl Site {
 
         while let Some(entry) = entries.next_entry().await? {
             if entry.path().is_dir() {
-                sites.push(Site::from(entry.path()))
+                let site = Site::from(entry.path());
+
+                if is_valid_hostname(site.get_hostname().as_str()) {
+                    sites.push(site);
+                }
             }
         }
 
@@ -96,5 +106,15 @@ mod tests {
     fn test_from_path() {
         let site = Site::from(get_example_dir().join("localhost"));
         assert_eq!(site.get_hostname(), "localhost")
+    }
+
+    #[test]
+    fn test_is_valid_hostname() {
+        assert!(is_valid_hostname("example.com"));
+        assert!(is_valid_hostname("subdomain.example.com"));
+        assert!(is_valid_hostname("example"));
+
+        assert!(!is_valid_hostname(".example.com"));
+        assert!(!is_valid_hostname("../site"));
     }
 }
