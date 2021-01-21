@@ -27,7 +27,9 @@ impl Guard for BasicAuthGuard {
 }
 
 impl BasicAuthGuard {
-    pub fn new(password: String) -> BasicAuthGuard {
-        BasicAuthGuard { password }
+    pub fn new(password: &str) -> BasicAuthGuard {
+        BasicAuthGuard {
+            password: password.to_owned(),
+        }
     }
 }

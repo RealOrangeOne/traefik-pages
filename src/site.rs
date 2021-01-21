@@ -25,8 +25,8 @@ impl Site {
         self.root.file_name().unwrap().to_str().unwrap().to_owned()
     }
 
-    pub async fn from_hostname(sites_root: impl AsRef<Path>, hostname: String) -> Option<Site> {
-        debug_assert!(is_valid_hostname(hostname.as_str()));
+    pub async fn from_hostname(sites_root: impl AsRef<Path>, hostname: &str) -> Option<Site> {
+        debug_assert!(is_valid_hostname(&hostname));
         let site_root = safe_join(sites_root, hostname).await.ok()?;
         Some(Site::from(site_root))
     }
@@ -40,7 +40,7 @@ impl Site {
             if entry.path().is_dir() {
                 let site = Site::from(entry.path());
 
-                if is_valid_hostname(site.get_hostname().as_str()) {
+                if is_valid_hostname(&site.get_hostname()) {
                     sites.push(site);
                 }
             }

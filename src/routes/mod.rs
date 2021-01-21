@@ -10,7 +10,7 @@ pub const INTERNAL_ROUTE_PREFIX: &str = ".traefik-pages";
 
 fn get_internal_routes(config: &Config) -> Scope {
     web::scope(INTERNAL_ROUTE_PREFIX)
-        .guard(BasicAuthGuard::new(config.auth_password.clone()))
+        .guard(BasicAuthGuard::new(&config.auth_password))
         .route("/health", web::route().to(health::health))
         .route("/sites", web::get().to(sites::sites_list))
         .route("/provider", web::get().to(traefik::traefik_provider))

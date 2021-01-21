@@ -19,11 +19,11 @@ pub async fn safe_join(base: impl AsRef<Path>, second: impl AsRef<Path>) -> io::
     io::Result::Ok(joined)
 }
 
-pub fn normalize_path(original_path: String) -> String {
+pub fn normalize_path(original_path: &str) -> String {
     if original_path.is_empty() || original_path.ends_with('/') {
-        return original_path + "index.html";
+        return original_path.to_owned() + "index.html";
     }
-    original_path
+    original_path.to_owned()
 }
 
 #[cfg(test)]

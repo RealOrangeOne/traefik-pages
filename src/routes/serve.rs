@@ -14,16 +14,16 @@ fn get_hostname(request: &HttpRequest) -> String {
 }
 
 fn get_path(request: &HttpRequest) -> String {
-    let original_path = request.match_info().get("path").unwrap().to_owned();
+    let original_path = request.match_info().get("path").unwrap();
     normalize_path(original_path)
 }
 
 pub async fn serve_file(req: HttpRequest, config: web::Data<Config>) -> HttpResponse {
     let hostname = get_hostname(&req);
-    if !is_valid_hostname(hostname.as_str()) {
+    if !is_valid_hostname(&hostname) {
         return HttpResponse::NotFound().finish();
     }
-    let site = match Site::from_hostname(&config.sites_root, hostname).await {
+    let site = match Site::from_hostname(&config.sites_root, &hostname).await {
         Some(s) => s,
         None => return HttpResponse::NotFound().finish(),
     };
