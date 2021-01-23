@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [linux/386, linux/amd64, linux/arm64/v8]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: theorangeone
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build containers
+        uses: docker/build-push-action@v2
+        with:
+          platforms: ${{ matrix.platform }}
+          push: true
+          tags: theorangeone/traefik-pages:${{ github.ref }}
+
+
+  binary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - uses: actions/cache@v1
+        with:
+          path: $HOME/.cargo
+          key: cargo-${{ hashFiles('Cargo.lock') }}
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/release/date-group
+          asset_name: date-group-linux-amd64
+          tag: ${{ github.ref }}
+          overwrite: true
