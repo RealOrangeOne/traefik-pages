@@ -9,6 +9,7 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - uses: actions/checkout@v1
 
@@ -20,6 +21,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -44,6 +46,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    needs: lint
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -59,7 +62,12 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-          components: rustfmt, clippy
+          components: clippy
+
+      - name: Check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
 
       - name: Test
         uses: actions-rs/cargo@v1
@@ -72,13 +80,22 @@ jobs:
           command: clippy
           args: -- -D warnings
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt
+
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
-
-      - name: Check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
