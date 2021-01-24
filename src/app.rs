@@ -17,25 +17,15 @@ pub fn configure_app(cfg: &mut ServiceConfig, settings: Settings) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_utils::get_test_settings;
     use actix_web::http::HeaderValue;
     use actix_web::web::Bytes;
     use actix_web::{test, App};
-    use std::env::current_dir;
-
-    fn get_settings() -> Settings {
-        Settings {
-            sites_root: current_dir().unwrap().join("example/sites"),
-            traefik_service: String::from("traefik-service@docker"),
-            traefik_cert_resolver: Some(String::from("le")),
-            auth_password: String::default(),
-            deny_prefixes: Vec::new(),
-        }
-    }
 
     #[tokio::test]
     async fn test_get_index() {
         let mut app =
-            test::init_service(App::new().configure(|cfg| configure_app(cfg, get_settings())))
+            test::init_service(App::new().configure(|cfg| configure_app(cfg, get_test_settings())))
                 .await;
         let request = test::TestRequest::get()
             .uri("/")
@@ -48,7 +38,7 @@ mod tests {
     #[tokio::test]
     async fn test_default_headers() {
         let mut app =
-            test::init_service(App::new().configure(|cfg| configure_app(cfg, get_settings())))
+            test::init_service(App::new().configure(|cfg| configure_app(cfg, get_test_settings())))
                 .await;
         let request = test::TestRequest::get()
             .uri("/")

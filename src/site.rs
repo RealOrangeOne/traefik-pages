@@ -63,13 +63,10 @@ impl Site {
 mod tests {
     use super::*;
 
-    use std::env::current_dir;
     use std::fs::File;
     use std::io::Read;
 
-    fn get_example_dir() -> PathBuf {
-        current_dir().unwrap().join("example/sites")
-    }
+    use crate::test_utils::get_example_dir;
 
     #[tokio::test]
     async fn test_discover_all() {

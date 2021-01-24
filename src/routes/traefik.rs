@@ -66,12 +66,7 @@ mod tests {
     use super::*;
 
     use crate::site::Site;
-    use std::env::current_dir;
-    use std::path::PathBuf;
-
-    fn get_example_dir() -> PathBuf {
-        current_dir().unwrap().join("example/sites")
-    }
+    use crate::test_utils::{get_example_dir, get_test_settings};
 
     #[test]
     fn test_default_middleware() {
@@ -94,13 +89,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_serialize_router() {
-        let settings = Settings {
-            sites_root: get_example_dir(),
-            traefik_service: String::from("traefik-service@docker"),
-            traefik_cert_resolver: Some(String::from("le")),
-            auth_password: String::default(),
-            deny_prefixes: Vec::new(),
-        };
+        let settings = get_test_settings();
         let example_site = settings.site_from_hostname("localhost").await.unwrap();
         assert_eq!(
             serialize_router(&example_site, &settings),

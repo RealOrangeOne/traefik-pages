@@ -13,6 +13,9 @@ mod site;
 mod site_config;
 mod utils;
 
+#[cfg(test)]
+mod test_utils;
+
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn get_sites_root() -> PathBuf {

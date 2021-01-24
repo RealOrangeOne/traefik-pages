@@ -30,11 +30,7 @@ pub fn maybe_append_index(original_path: &str) -> String {
 mod tests {
     use super::*;
 
-    use std::env::current_dir;
-
-    fn get_example_dir() -> PathBuf {
-        current_dir().unwrap().join("example/sites")
-    }
+    use crate::test_utils::get_example_dir;
 
     #[test]
     fn test_maybe_append_index() {
