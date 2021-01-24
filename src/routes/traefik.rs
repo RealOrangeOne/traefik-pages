@@ -44,7 +44,7 @@ fn get_middleware() -> Value {
 }
 
 pub async fn traefik_provider(settings: web::Data<Settings>) -> HttpResponse {
-    let sites = match Site::discover_all(&settings.sites_root).await {
+    let sites = match settings.discover_sites().await {
         Ok(s) => s,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
@@ -92,9 +92,8 @@ mod tests {
         assert_eq!(get_router_name(&example_site), "router-localhost");
     }
 
-    #[test]
-    fn test_serialize_router() {
-        let example_site = Site::from(get_example_dir().join("localhost"));
+    #[tokio::test]
+    async fn test_serialize_router() {
         let settings = Settings {
             sites_root: get_example_dir(),
             traefik_service: String::from("traefik-service@docker"),
@@ -102,6 +101,7 @@ mod tests {
             auth_password: String::default(),
             deny_prefixes: Vec::new(),
         };
+        let example_site = settings.site_from_hostname("localhost").await.unwrap();
         assert_eq!(
             serialize_router(&example_site, &settings),
             json!({

@@ -1,6 +1,6 @@
 use crate::files::normalize_path;
 use crate::settings::Settings;
-use crate::site::{is_valid_hostname, Site};
+use crate::site::is_valid_hostname;
 use actix_files::NamedFile;
 use actix_web::{web, HttpRequest, HttpResponse};
 
@@ -23,7 +23,7 @@ pub async fn serve_file(req: HttpRequest, settings: web::Data<Settings>) -> Http
     if !is_valid_hostname(&hostname) {
         return HttpResponse::NotFound().finish();
     }
-    let site = match Site::from_hostname(&settings.sites_root, &hostname).await {
+    let site = match settings.site_from_hostname(&hostname).await {
         Some(s) => s,
         None => return HttpResponse::NotFound().finish(),
     };

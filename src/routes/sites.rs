@@ -3,7 +3,7 @@ use crate::site::Site;
 use actix_web::{web, HttpResponse};
 
 pub async fn sites_list(settings: web::Data<Settings>) -> HttpResponse {
-    let sites = match Site::discover_all(&settings.sites_root).await {
+    let sites = match settings.discover_sites().await {
         Ok(s) => s,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
