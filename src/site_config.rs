@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     fn test_defaults() {
-        let site_config: SiteConfig = from_str("").unwrap();
+        let site_config = SiteConfig::default();
 
         assert!(site_config.dir_index);
     }
