@@ -1,7 +1,8 @@
 use crate::site::Site;
-use std::path::PathBuf;
-pub const RETRY_COUNT: u8 = 4;
 use std::io;
+use std::path::PathBuf;
+
+pub const RETRY_COUNT: u8 = 4;
 
 #[derive(Clone)]
 pub struct Settings {

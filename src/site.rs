@@ -1,4 +1,5 @@
 use crate::files::safe_join;
+use crate::site_config::{SiteConfig, CONFIG_FILENAME};
 use std::io;
 use std::path::{Path, PathBuf};
 use tokio::fs;
@@ -10,17 +11,21 @@ pub fn is_valid_hostname(hostname: &str) -> bool {
 
 pub struct Site {
     root: PathBuf,
-}
-
-impl From<PathBuf> for Site {
-    fn from(path: PathBuf) -> Self {
-        debug_assert!(path.is_dir());
-
-        Site { root: path }
-    }
+    pub config: SiteConfig,
 }
 
 impl Site {
+    pub async fn new(root: PathBuf) -> Self {
+        debug_assert!(root.is_dir());
+
+        let config = match safe_join(&root, CONFIG_FILENAME).await {
+            Ok(p) => SiteConfig::new(p).await,
+            Err(_) => SiteConfig::default(),
+        };
+
+        Site { root, config }
+    }
+
     pub fn get_hostname(&self) -> String {
         self.root.file_name().unwrap().to_str().unwrap().to_owned()
     }
@@ -28,7 +33,7 @@ impl Site {
     pub async fn from_hostname(sites_root: impl AsRef<Path>, hostname: &str) -> Option<Site> {
         debug_assert!(is_valid_hostname(&hostname));
         let site_root = safe_join(sites_root, hostname).await.ok()?;
-        Some(Site::from(site_root))
+        Some(Site::new(site_root).await)
     }
 
     pub async fn discover_all(sites_root: impl AsRef<Path>) -> io::Result<Vec<Site>> {
@@ -38,7 +43,7 @@ impl Site {
 
         while let Some(entry) = entries.next_entry().await? {
             if entry.path().is_dir() {
-                let site = Site::from(entry.path());
+                let site = Site::new(entry.path()).await;
 
                 if is_valid_hostname(&site.get_hostname()) {
                     sites.push(site);
@@ -80,7 +85,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_file() {
-        let site = Site::from(get_example_dir().join("localhost"));
+        let site = Site::new(get_example_dir().join("localhost")).await;
 
         assert!(site.get_file("index.html").await.is_ok());
         assert!(site.get_file("missing.html").await.is_err());
@@ -93,7 +98,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_file_content() {
-        let site = Site::from(get_example_dir().join("localhost"));
+        let site = Site::new(get_example_dir().join("localhost")).await;
 
         let mut file = File::open(site.get_file("index.html").await.unwrap()).unwrap();
         let mut contents = String::new();
@@ -102,9 +107,9 @@ mod tests {
         assert_eq!(contents, "localhost index\n");
     }
 
-    #[test]
-    fn test_from_path() {
-        let site = Site::from(get_example_dir().join("localhost"));
+    #[tokio::test]
+    async fn test_from_path() {
+        let site = Site::new(get_example_dir().join("localhost")).await;
         assert_eq!(site.get_hostname(), "localhost")
     }
 

@@ -86,9 +86,9 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_router_name() {
-        let example_site = Site::from(get_example_dir().join("localhost"));
+    #[tokio::test]
+    async fn test_router_name() {
+        let example_site = Site::new(get_example_dir().join("localhost")).await;
         assert_eq!(get_router_name(&example_site), "router-localhost");
     }
 

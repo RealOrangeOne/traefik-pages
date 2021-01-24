@@ -13,9 +13,13 @@ fn get_hostname(request: &HttpRequest) -> String {
     }
 }
 
-fn get_path(request: &HttpRequest) -> String {
+fn get_path(request: &HttpRequest, dir_index: bool) -> String {
     let original_path = request.match_info().get("path").unwrap();
-    normalize_path(original_path)
+    if dir_index {
+        normalize_path(original_path)
+    } else {
+        original_path.to_owned()
+    }
 }
 
 pub async fn serve_file(req: HttpRequest, settings: web::Data<Settings>) -> HttpResponse {
@@ -28,7 +32,7 @@ pub async fn serve_file(req: HttpRequest, settings: web::Data<Settings>) -> Http
         None => return HttpResponse::NotFound().finish(),
     };
 
-    let url_path = get_path(&req);
+    let url_path = get_path(&req, site.config.dir_index);
 
     if settings
         .deny_prefixes

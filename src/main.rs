@@ -10,6 +10,7 @@ mod files;
 mod routes;
 mod settings;
 mod site;
+mod site_config;
 mod utils;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
