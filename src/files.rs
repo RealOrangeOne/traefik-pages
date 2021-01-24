@@ -19,7 +19,7 @@ pub async fn safe_join(base: impl AsRef<Path>, second: impl AsRef<Path>) -> io::
     io::Result::Ok(joined)
 }
 
-pub fn normalize_path(original_path: &str) -> String {
+pub fn maybe_append_index(original_path: &str) -> String {
     if original_path.is_empty() || original_path.ends_with('/') {
         return original_path.to_owned() + "index.html";
     }
@@ -37,10 +37,10 @@ mod tests {
     }
 
     #[test]
-    fn test_normalize_path() {
-        assert_eq!(normalize_path("foo/".into()), "foo/index.html");
-        assert_eq!(normalize_path("foo.html".into()), "foo.html");
-        assert_eq!(normalize_path("".into()), "index.html");
+    fn test_maybe_append_index() {
+        assert_eq!(maybe_append_index("foo/".into()), "foo/index.html");
+        assert_eq!(maybe_append_index("foo.html".into()), "foo.html");
+        assert_eq!(maybe_append_index("".into()), "index.html");
     }
 
     #[tokio::test]

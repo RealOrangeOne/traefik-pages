@@ -1,4 +1,4 @@
-use crate::files::normalize_path;
+use crate::files::maybe_append_index;
 use crate::settings::Settings;
 use crate::site::is_valid_hostname;
 use actix_files::NamedFile;
@@ -16,7 +16,7 @@ fn get_hostname(request: &HttpRequest) -> String {
 fn get_path(request: &HttpRequest, dir_index: bool) -> String {
     let original_path = request.match_info().get("path").unwrap();
     if dir_index {
-        normalize_path(original_path)
+        maybe_append_index(original_path)
     } else {
         original_path.to_owned()
     }
