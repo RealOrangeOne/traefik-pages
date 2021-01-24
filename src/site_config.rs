@@ -9,7 +9,7 @@ fn default_true() -> bool {
     true
 }
 
-#[derive(Default, Deserialize)]
+#[derive(Deserialize)]
 pub struct SiteConfig {
     #[serde(default = "default_true")]
     pub dir_index: bool,
@@ -24,6 +24,12 @@ impl SiteConfig {
             .expect("Failed to read site config");
 
         from_str(&contents).expect("Failed to parse site config")
+    }
+}
+
+impl Default for SiteConfig {
+    fn default() -> Self {
+        from_str("").expect("Default for site failed")
     }
 }
 
