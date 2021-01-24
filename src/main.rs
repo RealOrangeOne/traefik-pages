@@ -1,10 +1,10 @@
-use actix_web::http::header;
-use actix_web::middleware::{Compress, DefaultHeaders, Logger};
+use actix_web::middleware::{Compress, Logger};
 use actix_web::{App, HttpServer};
 use env_logger::Env;
 use std::env;
 use std::path::PathBuf;
 
+mod app;
 mod auth;
 mod files;
 mod routes;
@@ -37,7 +37,7 @@ fn get_logger() -> Logger {
 async fn main() -> std::io::Result<()> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
-    let app_settings = settings::Settings {
+    let settings = settings::Settings {
         sites_root: get_sites_root(),
         traefik_service: utils::get_env_or_default("TRAEFIK_SERVICE", None),
         traefik_cert_resolver: env::var("TRAEFIK_CERT_RESOLVER").ok(),
@@ -54,15 +54,9 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            .configure(|cfg| app::configure_app(cfg, settings.clone()))
             .wrap(get_logger())
             .wrap(Compress::default())
-            .wrap(
-                DefaultHeaders::new()
-                    .header(header::SERVER, format!("traefik-pages {}", VERSION))
-                    .header(header::CACHE_CONTROL, "max-age=0, must-revalidate, public"),
-            )
-            .data(app_settings.clone())
-            .service(routes::get_routes(&app_settings))
     })
     .workers(utils::get_workers())
     .bind(format!("0.0.0.0:{}", utils::get_port()))?
