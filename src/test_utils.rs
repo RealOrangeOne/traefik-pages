@@ -24,3 +24,22 @@ pub fn auth_credentials() -> Basic {
     let password: Option<&str> = None;
     Basic::new(TEST_PASSWORD, password)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_example_dir() {
+        let example_dir = get_example_dir();
+        assert!(example_dir.exists());
+        assert!(example_dir.is_dir());
+    }
+
+    #[test]
+    fn test_auth_credentials() {
+        let credentials = auth_credentials();
+        assert_eq!(credentials.user_id(), TEST_PASSWORD);
+        assert!(credentials.password().is_none());
+    }
+}
