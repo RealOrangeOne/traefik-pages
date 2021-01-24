@@ -1,5 +1,5 @@
-use crate::config::Config;
 use crate::files::normalize_path;
+use crate::settings::Settings;
 use crate::site::{is_valid_hostname, Site};
 use actix_files::NamedFile;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -18,19 +18,19 @@ fn get_path(request: &HttpRequest) -> String {
     normalize_path(original_path)
 }
 
-pub async fn serve_file(req: HttpRequest, config: web::Data<Config>) -> HttpResponse {
+pub async fn serve_file(req: HttpRequest, settings: web::Data<Settings>) -> HttpResponse {
     let hostname = get_hostname(&req);
     if !is_valid_hostname(&hostname) {
         return HttpResponse::NotFound().finish();
     }
-    let site = match Site::from_hostname(&config.sites_root, &hostname).await {
+    let site = match Site::from_hostname(&settings.sites_root, &hostname).await {
         Some(s) => s,
         None => return HttpResponse::NotFound().finish(),
     };
 
     let url_path = get_path(&req);
 
-    if config
+    if settings
         .deny_prefixes
         .iter()
         .any(|prefix| url_path.starts_with(prefix))

@@ -1,9 +1,9 @@
-use crate::config::Config;
+use crate::settings::Settings;
 use crate::site::Site;
 use actix_web::{web, HttpResponse};
 
-pub async fn sites_list(config: web::Data<Config>) -> HttpResponse {
-    let sites = match Site::discover_all(&config.sites_root).await {
+pub async fn sites_list(settings: web::Data<Settings>) -> HttpResponse {
+    let sites = match Site::discover_all(&settings.sites_root).await {
         Ok(s) => s,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };

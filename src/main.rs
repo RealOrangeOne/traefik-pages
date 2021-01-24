@@ -6,9 +6,9 @@ use std::env;
 use std::path::PathBuf;
 
 mod auth;
-mod config;
 mod files;
 mod routes;
+mod settings;
 mod site;
 mod utils;
 
@@ -36,7 +36,7 @@ fn get_logger() -> Logger {
 async fn main() -> std::io::Result<()> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
-    let app_config = config::Config {
+    let app_settings = settings::Settings {
         sites_root: get_sites_root(),
         traefik_service: utils::get_env_or_default("TRAEFIK_SERVICE", None),
         traefik_cert_resolver: env::var("TRAEFIK_CERT_RESOLVER").ok(),
@@ -60,8 +60,8 @@ async fn main() -> std::io::Result<()> {
                     .header(header::SERVER, format!("traefik-pages {}", VERSION))
                     .header(header::CACHE_CONTROL, "max-age=0, must-revalidate, public"),
             )
-            .data(app_config.clone())
-            .service(routes::get_routes(&app_config))
+            .data(app_settings.clone())
+            .service(routes::get_routes(&app_settings))
     })
     .workers(utils::get_workers())
     .bind(format!("0.0.0.0:{}", utils::get_port()))?
