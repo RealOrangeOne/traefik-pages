@@ -7,7 +7,7 @@ use std::collections::HashMap;
 const DEFAULT_MIDDLEWARE_NAME: &str = "tp-default";
 
 fn get_router_name(site: &Site) -> String {
-    format!("router-{}", site.get_hostname().replace(".", "-"))
+    site.get_hostname().replace(".", "-")
 }
 
 /// Routers look funny, so no point defining as a struct
@@ -84,7 +84,10 @@ mod tests {
     #[tokio::test]
     async fn test_router_name() {
         let example_site = Site::new(get_example_dir().join("localhost")).await;
-        assert_eq!(get_router_name(&example_site), "router-localhost");
+        assert_eq!(get_router_name(&example_site), "localhost");
+
+        let example_site_2 = Site::new(get_example_dir().join("site1.localhost")).await;
+        assert_eq!(get_router_name(&example_site_2), "site1-localhost");
     }
 
     #[tokio::test]
