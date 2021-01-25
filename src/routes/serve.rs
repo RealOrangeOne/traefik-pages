@@ -1,4 +1,3 @@
-use crate::files::maybe_append_index;
 use crate::settings::Settings;
 use crate::site::is_valid_hostname;
 use actix_files::NamedFile;
@@ -13,15 +12,6 @@ fn get_hostname(request: &HttpRequest) -> String {
     }
 }
 
-fn get_path(request: &HttpRequest, dir_index: bool) -> String {
-    let original_path = request.path().trim_start_matches('/');
-    if dir_index {
-        maybe_append_index(original_path)
-    } else {
-        original_path.to_owned()
-    }
-}
-
 pub async fn serve_file(req: HttpRequest, settings: web::Data<Settings>) -> HttpResponse {
     let hostname = get_hostname(&req);
     if !is_valid_hostname(&hostname) {
@@ -32,7 +22,7 @@ pub async fn serve_file(req: HttpRequest, settings: web::Data<Settings>) -> Http
         None => return HttpResponse::NotFound().finish(),
     };
 
-    let url_path = get_path(&req, site.config.dir_index);
+    let url_path = req.path().trim_start_matches('/');
 
     if settings
         .deny_prefixes
@@ -42,7 +32,7 @@ pub async fn serve_file(req: HttpRequest, settings: web::Data<Settings>) -> Http
         return HttpResponse::NotFound().finish();
     }
 
-    match site.get_file(&url_path).await {
+    match site.get_file(&url_path, site.config.dir_index).await {
         Ok(p) => NamedFile::open(p)
             .expect("Failed to open file")
             .disable_content_disposition()
@@ -71,14 +61,6 @@ mod tests {
             .header(header::HOST, hostname)
             .to_request();
         test::read_response(&mut app, request).await
-    }
-
-    #[test]
-    fn test_get_path() {
-        let request = test::TestRequest::get().uri("/foo/").to_http_request();
-
-        assert_eq!(get_path(&request, true), "foo/index.html");
-        assert_eq!(get_path(&request, false), "foo/");
     }
 
     #[test]
@@ -113,6 +95,10 @@ mod tests {
         );
         assert_eq!(
             get_content_at_path("localhost", "/sub/").await,
+            Bytes::from_static(b"localhost subdir\n")
+        );
+        assert_eq!(
+            get_content_at_path("localhost", "/sub").await,
             Bytes::from_static(b"localhost subdir\n")
         );
         assert_eq!(

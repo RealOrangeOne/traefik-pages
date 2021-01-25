@@ -1,3 +1,4 @@
+use crate::files::handle_index;
 use crate::files::safe_join;
 use crate::site_config::{SiteConfig, CONFIG_FILENAME};
 use std::io;
@@ -54,8 +55,12 @@ impl Site {
         Ok(sites)
     }
 
-    pub async fn get_file(&self, path: impl AsRef<Path>) -> io::Result<PathBuf> {
-        safe_join(&self.root, path).await
+    pub async fn get_file(&self, path: impl AsRef<Path>, dir_index: bool) -> io::Result<PathBuf> {
+        match safe_join(&self.root, path).await {
+            // HACK: `Result.map` isn't async-compatible
+            Ok(p) => Ok(if dir_index { handle_index(p).await } else { p }),
+            Err(e) => Err(e),
+        }
     }
 }
 
@@ -84,11 +89,21 @@ mod tests {
     async fn test_get_file() {
         let site = Site::new(get_example_dir().join("localhost")).await;
 
-        assert!(site.get_file("index.html").await.is_ok());
-        assert!(site.get_file("missing.html").await.is_err());
+        assert!(site.get_file("index.html", true).await.is_ok());
+        assert!(site.get_file("missing.html", true).await.is_err());
 
         assert_eq!(
-            site.get_file("index.html").await.unwrap(),
+            site.get_file("index.html", true).await.unwrap(),
+            get_example_dir().join("localhost/index.html")
+        );
+
+        assert_eq!(
+            site.get_file("sub", true).await.unwrap(),
+            get_example_dir().join("localhost/sub/index.html")
+        );
+
+        assert_eq!(
+            site.get_file("", true).await.unwrap(),
             get_example_dir().join("localhost/index.html")
         );
     }
@@ -97,7 +112,7 @@ mod tests {
     async fn test_get_file_content() {
         let site = Site::new(get_example_dir().join("localhost")).await;
 
-        let mut file = File::open(site.get_file("index.html").await.unwrap()).unwrap();
+        let mut file = File::open(site.get_file("index.html", true).await.unwrap()).unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
 
