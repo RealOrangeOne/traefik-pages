@@ -14,7 +14,7 @@ fn get_hostname(request: &HttpRequest) -> String {
 }
 
 fn get_path(request: &HttpRequest, dir_index: bool) -> String {
-    let original_path = request.match_info().get("path").unwrap();
+    let original_path = request.path().trim_start_matches('/');
     if dir_index {
         maybe_append_index(original_path)
     } else {
@@ -49,5 +49,118 @@ pub async fn serve_file(req: HttpRequest, settings: web::Data<Settings>) -> Http
             .into_response(&req)
             .expect("Failed to turn file into response"),
         Err(_) => return HttpResponse::NotFound().finish(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::app::configure_app;
+    use crate::test_utils::get_test_settings;
+    use actix_web::http::header;
+    use actix_web::web::Bytes;
+    use actix_web::{test, App};
+
+    async fn get_content_at_path(hostname: &str, path: &str) -> Bytes {
+        let mut app =
+            test::init_service(App::new().configure(|cfg| configure_app(cfg, get_test_settings())))
+                .await;
+        let request = test::TestRequest::get()
+            .uri(path)
+            .header(header::HOST, hostname)
+            .to_request();
+        test::read_response(&mut app, request).await
+    }
+
+    #[test]
+    fn test_get_path() {
+        let request = test::TestRequest::get().uri("/foo/").to_http_request();
+
+        assert_eq!(get_path(&request, true), "foo/index.html");
+        assert_eq!(get_path(&request, false), "foo/");
+    }
+
+    #[test]
+    fn test_get_hostname() {
+        let request = test::TestRequest::get()
+            .uri("/")
+            .header(header::HOST, "localhost")
+            .to_http_request();
+
+        assert_eq!(get_hostname(&request), "localhost");
+    }
+
+    #[test]
+    fn test_get_hostname_with_port() {
+        let request = test::TestRequest::get()
+            .uri("/")
+            .header(header::HOST, "localhost:5000")
+            .to_http_request();
+
+        assert_eq!(get_hostname(&request), "localhost");
+    }
+
+    #[tokio::test]
+    async fn test_serve_correct_files() {
+        assert_eq!(
+            get_content_at_path("localhost", "/").await,
+            Bytes::from_static(b"localhost index\n")
+        );
+        assert_eq!(
+            get_content_at_path("localhost", "/index.html").await,
+            Bytes::from_static(b"localhost index\n")
+        );
+        assert_eq!(
+            get_content_at_path("localhost", "/sub/").await,
+            Bytes::from_static(b"localhost subdir\n")
+        );
+        assert_eq!(
+            get_content_at_path("localhost", "/sub/index.html").await,
+            Bytes::from_static(b"localhost subdir\n")
+        );
+        assert_eq!(
+            get_content_at_path("site1.localhost", "/").await,
+            Bytes::from_static(b"Site 1\n")
+        );
+    }
+
+    #[tokio::test]
+    async fn test_unknown_hostname() {
+        let mut app =
+            test::init_service(App::new().configure(|cfg| configure_app(cfg, get_test_settings())))
+                .await;
+        let request = test::TestRequest::get()
+            .uri("/")
+            .header(header::HOST, "unknown")
+            .to_request();
+        let response = test::call_service(&mut app, request).await;
+        assert_eq!(response.status(), 404);
+    }
+
+    #[tokio::test]
+    async fn test_unknown_path() {
+        let mut app =
+            test::init_service(App::new().configure(|cfg| configure_app(cfg, get_test_settings())))
+                .await;
+        let request = test::TestRequest::get()
+            .uri("/unknown.html")
+            .header(header::HOST, "localhost")
+            .to_request();
+        let response = test::call_service(&mut app, request).await;
+        assert_eq!(response.status(), 404);
+    }
+
+    #[tokio::test]
+    async fn test_invalid_hostname() {
+        let mut app =
+            test::init_service(App::new().configure(|cfg| configure_app(cfg, get_test_settings())))
+                .await;
+        let request = test::TestRequest::get()
+            .uri("/")
+            .header(header::HOST, ".localhost")
+            .to_request();
+        let response = test::call_service(&mut app, request).await;
+        assert_eq!(response.status(), 404);
     }
 }
