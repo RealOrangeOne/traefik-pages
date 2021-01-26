@@ -27,6 +27,7 @@ pub async fn serve_file(req: HttpRequest, settings: web::Data<Settings>) -> Http
     if settings
         .deny_prefixes
         .iter()
+        .chain(site.config.deny_prefixes.iter())
         .any(|prefix| url_path.starts_with(prefix))
     {
         return HttpResponse::NotFound().finish();

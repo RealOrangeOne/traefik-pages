@@ -13,6 +13,10 @@ fn default_dir_index_name() -> String {
     String::from("index.html")
 }
 
+fn default_deny_prefixes() -> Vec<String> {
+    vec![]
+}
+
 #[derive(Deserialize)]
 pub struct SiteConfig {
     #[serde(default = "default_true")]
@@ -20,6 +24,9 @@ pub struct SiteConfig {
 
     #[serde(default = "default_dir_index_name")]
     pub dir_index_name: String,
+
+    #[serde(default = "default_deny_prefixes")]
+    pub deny_prefixes: Vec<String>,
 }
 
 impl SiteConfig {
@@ -52,8 +59,8 @@ mod tests {
     #[test]
     fn test_defaults() {
         let site_config = SiteConfig::default();
-
         assert!(site_config.dir_index);
         assert_eq!(&site_config.dir_index_name, "index.html");
+        assert_eq!(site_config.deny_prefixes, Vec::<String>::new());
     }
 }
