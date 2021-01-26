@@ -1,5 +1,5 @@
 use crate::files::handle_index;
-use crate::files::{is_dir, safe_join};
+use crate::files::{ensure_file, is_dir, safe_join};
 use crate::site_config::{SiteConfig, CONFIG_FILENAME};
 use std::io;
 use std::path::{Path, PathBuf};
@@ -13,18 +13,33 @@ pub fn is_valid_hostname(hostname: &str) -> bool {
 pub struct Site {
     root: PathBuf,
     pub config: SiteConfig,
+    config_path: Option<PathBuf>,
 }
 
 impl Site {
     pub async fn new(root: PathBuf) -> Self {
         debug_assert!(root.is_dir());
 
-        let config = match safe_join(&root, CONFIG_FILENAME).await {
-            Ok(p) => SiteConfig::new(p).await,
-            Err(_) => SiteConfig::default(),
+        let maybe_config_path = safe_join(&root, CONFIG_FILENAME).await.ok();
+
+        let config = match maybe_config_path {
+            Some(ref p) => SiteConfig::new(p).await,
+            None => SiteConfig::default(),
         };
 
-        Site { root, config }
+        Site {
+            root,
+            config,
+            config_path: maybe_config_path,
+        }
+    }
+
+    pub fn get_index_file(&self) -> Option<String> {
+        if self.config.dir_index {
+            Some(self.config.dir_index_name.clone())
+        } else {
+            None
+        }
     }
 
     pub fn get_hostname(&self) -> String {
@@ -55,12 +70,26 @@ impl Site {
         Ok(sites)
     }
 
-    pub async fn get_file(&self, path: impl AsRef<Path>, dir_index: bool) -> io::Result<PathBuf> {
-        match safe_join(&self.root, path).await {
-            // HACK: `Result.map` isn't async-compatible
-            Ok(p) => Ok(if dir_index { handle_index(p).await } else { p }),
-            Err(e) => Err(e),
+    pub async fn get_file_for_path(&self, path: impl AsRef<Path>) -> io::Result<PathBuf> {
+        let maybe_joined_path = safe_join(&self.root, path).await;
+        if let Ok(joined_path) = maybe_joined_path {
+            if is_dir(&joined_path).await {
+                let index_file = match self.get_index_file() {
+                    Some(index_file) => handle_index(&joined_path, &index_file).await,
+                    None => Ok(joined_path),
+                };
+                return ensure_file(index_file).await;
+            } else if let Some(ref config_path) = self.config_path {
+                if &joined_path == config_path {
+                    return io::Result::Err(io::Error::new(
+                        io::ErrorKind::NotFound,
+                        String::from("File not found"),
+                    ));
+                }
+            }
+            return Ok(joined_path);
         }
+        maybe_joined_path
     }
 }
 
@@ -68,55 +97,44 @@ impl Site {
 mod tests {
     use super::*;
 
-    use std::fs::File;
-    use std::io::Read;
-
     use crate::test_utils::get_example_dir;
 
     #[tokio::test]
     async fn test_discover_all() {
         let sites = Site::discover_all(get_example_dir()).await.unwrap();
-        assert_eq!(sites.len(), 2);
+        assert_eq!(sites.len(), 3);
         let site_hostnames = sites
             .iter()
             .map(Site::get_hostname)
             .collect::<Vec<String>>();
         assert!(site_hostnames.contains(&String::from("localhost")));
         assert!(site_hostnames.contains(&String::from("site1.localhost")));
+        assert!(site_hostnames.contains(&String::from("no-index.localhost")));
     }
 
     #[tokio::test]
-    async fn test_get_file() {
+    async fn test_get_file_for_path() {
         let site = Site::new(get_example_dir().join("localhost")).await;
 
-        assert!(site.get_file("index.html", true).await.is_ok());
-        assert!(site.get_file("missing.html", true).await.is_err());
+        assert!(site.get_file_for_path("index.html").await.is_ok());
+        assert!(site.get_file_for_path("missing.html").await.is_err());
 
         assert_eq!(
-            site.get_file("index.html", true).await.unwrap(),
+            site.get_file_for_path("index.html").await.unwrap(),
             get_example_dir().join("localhost/index.html")
         );
 
         assert_eq!(
-            site.get_file("sub", true).await.unwrap(),
+            site.get_file_for_path("sub").await.unwrap(),
             get_example_dir().join("localhost/sub/index.html")
         );
 
         assert_eq!(
-            site.get_file("", true).await.unwrap(),
+            site.get_file_for_path("").await.unwrap(),
             get_example_dir().join("localhost/index.html")
         );
-    }
-
-    #[tokio::test]
-    async fn test_get_file_content() {
-        let site = Site::new(get_example_dir().join("localhost")).await;
-
-        let mut file = File::open(site.get_file("index.html", true).await.unwrap()).unwrap();
-        let mut contents = String::new();
-        file.read_to_string(&mut contents).unwrap();
-
-        assert_eq!(contents, "localhost index\n");
+        assert!(site.get_file_for_path("sub-no-index").await.is_err());
+        assert!(site.get_file_for_path(CONFIG_FILENAME).await.is_err());
     }
 
     #[tokio::test]

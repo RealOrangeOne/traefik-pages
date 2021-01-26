@@ -9,6 +9,18 @@ pub async fn is_dir(path: impl AsRef<Path>) -> bool {
     }
 }
 
+pub async fn ensure_file(maybe_path: io::Result<PathBuf>) -> io::Result<PathBuf> {
+    if let Ok(ref path) = maybe_path {
+        if is_dir(path).await {
+            return io::Result::Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                String::from("Is a directory"),
+            ));
+        }
+    }
+    maybe_path
+}
+
 pub async fn safe_join(base: impl AsRef<Path>, second: impl AsRef<Path>) -> io::Result<PathBuf> {
     let joined = fs::canonicalize(base.as_ref().join(&second)).await?;
 
@@ -26,13 +38,11 @@ pub async fn safe_join(base: impl AsRef<Path>, second: impl AsRef<Path>) -> io::
     io::Result::Ok(joined)
 }
 
-pub async fn handle_index(path: impl AsRef<Path>) -> PathBuf {
+pub async fn handle_index(path: impl AsRef<Path>, index_file_name: &str) -> io::Result<PathBuf> {
     if is_dir(&path).await {
-        safe_join(path, "index.html")
-            .await
-            .expect("Failed to join index")
+        safe_join(path, index_file_name).await
     } else {
-        path.as_ref().to_path_buf()
+        Ok(path.as_ref().to_path_buf())
     }
 }
 
@@ -53,12 +63,21 @@ mod tests {
     #[tokio::test]
     async fn test_handle_index() {
         assert_eq!(
-            handle_index(get_example_dir().join("localhost/sub")).await,
+            handle_index(get_example_dir().join("localhost/sub"), "index.html")
+                .await
+                .unwrap(),
             get_example_dir().join("localhost/sub/index.html")
         );
         assert_eq!(
-            handle_index(get_example_dir().join("localhost/index.html")).await,
+            handle_index(get_example_dir().join("localhost/index.html"), "index.html")
+                .await
+                .unwrap(),
             get_example_dir().join("localhost/index.html")
+        );
+        assert!(
+            handle_index(get_example_dir().join("localhost/sub"), "index.php")
+                .await
+                .is_err()
         );
     }
 

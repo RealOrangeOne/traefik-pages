@@ -32,7 +32,7 @@ pub async fn serve_file(req: HttpRequest, settings: web::Data<Settings>) -> Http
         return HttpResponse::NotFound().finish();
     }
 
-    match site.get_file(&url_path, site.config.dir_index).await {
+    match site.get_file_for_path(&url_path).await {
         Ok(p) => NamedFile::open(p)
             .expect("Failed to open file")
             .disable_content_disposition()
@@ -47,6 +47,7 @@ mod tests {
     use super::*;
 
     use crate::app::configure_app;
+    use crate::site_config::CONFIG_FILENAME;
     use crate::test_utils::get_test_settings;
     use actix_web::http::{header, Method};
     use actix_web::web::Bytes;
@@ -109,6 +110,10 @@ mod tests {
             get_content_at_path("site1.localhost", "/").await,
             Bytes::from_static(b"Site 1\n")
         );
+        assert_eq!(
+            get_content_at_path("no-index.localhost", "/").await,
+            Bytes::from_static(b"")
+        );
     }
 
     #[tokio::test]
@@ -131,6 +136,19 @@ mod tests {
                 .await;
         let request = test::TestRequest::get()
             .uri("/unknown.html")
+            .header(header::HOST, "localhost")
+            .to_request();
+        let response = test::call_service(&mut app, request).await;
+        assert_eq!(response.status(), 404);
+    }
+
+    #[tokio::test]
+    async fn test_config_file() {
+        let mut app =
+            test::init_service(App::new().configure(|cfg| configure_app(cfg, get_test_settings())))
+                .await;
+        let request = test::TestRequest::get()
+            .uri(&format!("/{}", CONFIG_FILENAME))
             .header(header::HOST, "localhost")
             .to_request();
         let response = test::call_service(&mut app, request).await;

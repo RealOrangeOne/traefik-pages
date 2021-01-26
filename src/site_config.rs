@@ -1,5 +1,5 @@
 use serde_derive::Deserialize;
-use std::path::PathBuf;
+use std::path::Path;
 use tokio::fs;
 use toml::from_str;
 
@@ -9,16 +9,21 @@ fn default_true() -> bool {
     true
 }
 
+fn default_dir_index_name() -> String {
+    String::from("index.html")
+}
+
 #[derive(Deserialize)]
 pub struct SiteConfig {
     #[serde(default = "default_true")]
     pub dir_index: bool,
+
+    #[serde(default = "default_dir_index_name")]
+    pub dir_index_name: String,
 }
 
 impl SiteConfig {
-    pub async fn new(file: PathBuf) -> Self {
-        debug_assert!(file.is_file());
-
+    pub async fn new(file: impl AsRef<Path>) -> Self {
         let contents = fs::read_to_string(file)
             .await
             .expect("Failed to read site config");
@@ -49,5 +54,6 @@ mod tests {
         let site_config = SiteConfig::default();
 
         assert!(site_config.dir_index);
+        assert_eq!(&site_config.dir_index_name, "index.html");
     }
 }
