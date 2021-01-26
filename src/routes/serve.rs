@@ -48,7 +48,7 @@ mod tests {
 
     use crate::app::configure_app;
     use crate::test_utils::get_test_settings;
-    use actix_web::http::header;
+    use actix_web::http::{header, Method};
     use actix_web::web::Bytes;
     use actix_web::{test, App};
 
@@ -166,5 +166,31 @@ mod tests {
         assert!(headers.contains_key(header::ETAG));
         assert!(headers.contains_key(header::LAST_MODIFIED));
         assert!(headers.contains_key(header::ACCEPT_RANGES));
+    }
+
+    #[tokio::test]
+    async fn test_head() {
+        let mut app =
+            test::init_service(App::new().configure(|cfg| configure_app(cfg, get_test_settings())))
+                .await;
+        let request = test::TestRequest::with_uri("/")
+            .method(Method::HEAD)
+            .header(header::HOST, "localhost")
+            .to_request();
+        let response = test::call_service(&mut app, request).await;
+        assert_eq!(response.status(), 200);
+    }
+
+    #[tokio::test]
+    async fn test_no_post() {
+        let mut app =
+            test::init_service(App::new().configure(|cfg| configure_app(cfg, get_test_settings())))
+                .await;
+        let request = test::TestRequest::with_uri("/")
+            .method(Method::POST)
+            .header(header::HOST, "localhost")
+            .to_request();
+        let response = test::call_service(&mut app, request).await;
+        assert_eq!(response.status(), 404);
     }
 }

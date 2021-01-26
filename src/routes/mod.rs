@@ -19,6 +19,7 @@ fn get_internal_routes(settings: &Settings) -> Scope {
 pub fn get_routes(settings: &Settings) -> Scope {
     web::scope("")
         .service(get_internal_routes(settings))
-        // This must go at the end
-        .route("/{path:.*}", web::route().to(serve::serve_file))
+        // These must go at the end
+        .route("/{path:.*}", web::get().to(serve::serve_file))
+        .route("/{path:.*}", web::head().to(serve::serve_file))
 }
