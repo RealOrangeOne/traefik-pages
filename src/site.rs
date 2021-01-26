@@ -1,5 +1,5 @@
 use crate::files::handle_index;
-use crate::files::safe_join;
+use crate::files::{is_dir, safe_join};
 use crate::site_config::{SiteConfig, CONFIG_FILENAME};
 use std::io;
 use std::path::{Path, PathBuf};
@@ -43,7 +43,7 @@ impl Site {
         let mut entries = fs::read_dir(sites_root).await?;
 
         while let Some(entry) = entries.next_entry().await? {
-            if entry.path().is_dir() {
+            if is_dir(entry.path()).await {
                 let site = Site::new(entry.path()).await;
 
                 if is_valid_hostname(&site.get_hostname()) {

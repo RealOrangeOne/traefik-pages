@@ -1,9 +1,16 @@
 use std::io;
 use std::path::{Path, PathBuf};
-use tokio::fs::canonicalize;
+use tokio::fs;
+
+pub async fn is_dir(path: impl AsRef<Path>) -> bool {
+    match fs::metadata(path).await {
+        Ok(m) => m.is_dir(),
+        Err(_) => false,
+    }
+}
 
 pub async fn safe_join(base: impl AsRef<Path>, second: impl AsRef<Path>) -> io::Result<PathBuf> {
-    let joined = canonicalize(base.as_ref().join(&second)).await?;
+    let joined = fs::canonicalize(base.as_ref().join(&second)).await?;
 
     if !joined.starts_with(&base) {
         return io::Result::Err(io::Error::new(
@@ -20,7 +27,7 @@ pub async fn safe_join(base: impl AsRef<Path>, second: impl AsRef<Path>) -> io::
 }
 
 pub async fn handle_index(path: impl AsRef<Path>) -> PathBuf {
-    if path.as_ref().is_dir() {
+    if is_dir(&path).await {
         safe_join(path, "index.html")
             .await
             .expect("Failed to join index")
