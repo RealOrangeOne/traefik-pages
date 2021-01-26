@@ -149,4 +149,22 @@ mod tests {
         let response = test::call_service(&mut app, request).await;
         assert_eq!(response.status(), 404);
     }
+
+    #[tokio::test]
+    async fn test_serves_files_with_headers() {
+        let mut app =
+            test::init_service(App::new().configure(|cfg| configure_app(cfg, get_test_settings())))
+                .await;
+        let request = test::TestRequest::get()
+            .uri("/")
+            .header(header::HOST, "localhost")
+            .to_request();
+        let response = test::call_service(&mut app, request).await;
+        assert_eq!(response.status(), 200);
+        let headers = response.headers();
+        assert_eq!(headers.get(header::CONTENT_TYPE).unwrap(), "text/html");
+        assert!(headers.contains_key(header::ETAG));
+        assert!(headers.contains_key(header::LAST_MODIFIED));
+        assert!(headers.contains_key(header::ACCEPT_RANGES));
+    }
 }
