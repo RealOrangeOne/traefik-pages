@@ -22,12 +22,21 @@ jobs:
           username: theorangeone
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build containers
         uses: docker/build-push-action@v2
         with:
           platforms: linux/arm,linux/amd64,linux/arm64/v8
           push: true
-          tags: theorangeone/traefik-pages:${{ github.ref }}
+          tags: |
+            theorangeone/traefik-pages:${{ github.ref }}
+            ghcr.io/realorangeone/traefik-pages:${{ github.ref }}
 
 
   binary:
