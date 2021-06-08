@@ -7,9 +7,6 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform: [linux/386, linux/amd64, linux/arm64/v8]
     steps:
       - uses: actions/checkout@v2
 
@@ -28,7 +25,7 @@ jobs:
       - name: Build containers
         uses: docker/build-push-action@v2
         with:
-          platforms: ${{ matrix.platform }}
+          platforms: linux/386,linux/amd64,linux/arm64/v8
           push: true
           tags: theorangeone/traefik-pages:${{ github.ref }}
 
