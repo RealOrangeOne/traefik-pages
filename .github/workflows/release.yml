@@ -25,7 +25,7 @@ jobs:
       - name: Build containers
         uses: docker/build-push-action@v2
         with:
-          platforms: linux/386,linux/amd64,linux/arm64/v8
+          platforms: linux/arm,linux/amd64,linux/arm64/v8
           push: true
           tags: theorangeone/traefik-pages:${{ github.ref }}
 
