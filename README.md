@@ -37,11 +37,16 @@ First, create a container for `traefik-pages`:
       - SITES_ROOT=/mnt/sites
       - TRAEFIK_SERVICE=traefik-pages@docker
       - AUTH_PASSWORD=hunter2
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.traefik-pages.loadbalancer.server.port=5000
 ```
 
 This doesn't need to be in the same file as Traefik, but it does need to be accessible to Traefik using a fixed hostname and IP. If Traefik is running in host mode (as I do), you'll need to bind `traefik-pages` to an internal interface, and listen to that.
 
-Next, you'll need to create a HTTP and file provider for Traefik, using the ports and password previously configured.
+The labels enable traefik autoconfiguration and configure the service listener. Note that the service name should match `$TRAEFIK_SERVICE`. The second label can be omitted, but $TRAEFIK_SERVICE will need to match the automatically configured name of the service.
+
+Next, you'll need to create a HTTP provider for Traefik, using the ports and password previously configured.
 
 ```yml
 providers:
@@ -49,24 +54,10 @@ providers:
   http:
     endpoint:
       - "http://hunter2@127.0.0.1:5000/.traefik-pages/provider"
-  file:
-    filename: /etc/traefik/file-provider.yml
 ```
 
 Here you can also configure the polling interval for `traefik-pages`.
 
-The file provider needs to define the service `traefik-pages` will route traffic to, which is itself:
-
-```yml
-http:
-  services:
-    traefik-pages:
-      loadBalancer:
-        servers:
-          - url: "http://127.0.0.1:5000"
-```
-
-Note that the service name should match `$TRAEFIK_SERVICE`.
 
 Now, simply start Traefik and `traefik-pages`, and they should begin communicating and creating routers for your sites.
 
