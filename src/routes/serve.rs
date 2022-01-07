@@ -39,7 +39,7 @@ pub async fn serve_file(req: HttpRequest, settings: web::Data<Settings>) -> Http
             .disable_content_disposition()
             .into_response(&req)
             .expect("Failed to turn file into response"),
-        Err(_) => return HttpResponse::NotFound().finish(),
+        Err(_) => HttpResponse::NotFound().finish(),
     }
 }
 

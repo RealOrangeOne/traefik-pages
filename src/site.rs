@@ -47,7 +47,7 @@ impl Site {
     }
 
     pub async fn from_hostname(sites_root: impl AsRef<Path>, hostname: &str) -> Option<Site> {
-        debug_assert!(is_valid_hostname(&hostname));
+        debug_assert!(is_valid_hostname(hostname));
         let site_root = safe_join(sites_root, hostname).await.ok()?;
         Some(Site::new(site_root).await)
     }
