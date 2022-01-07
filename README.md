@@ -43,7 +43,7 @@ First, create a container for `traefik-pages`:
 
 This doesn't need to be in the same file as Traefik, but it does need to be accessible to Traefik using a fixed hostname and IP. If Traefik is running in host mode (as I do), you'll need to bind `traefik-pages` to an internal interface, and listen to that.
 
-The labels enable traefik autoconfiguration and configure the service listener. Note that the service name should match `$TRAEFIK_SERVICE`. The second label can be omitted, but $TRAEFIK_SERVICE will need to match the automatically configured name of the service.
+The label enables traefik autoconfiguration to detect `traefik-pages`. Note that `$TRAEFIK_SERVICE` must match the service name created by traefik. 
 
 Next, you'll need to create a HTTP provider for Traefik, using the ports and password previously configured.
 
