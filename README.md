@@ -39,7 +39,6 @@ First, create a container for `traefik-pages`:
       - AUTH_PASSWORD=hunter2
     labels:
       - traefik.enable=true
-      - traefik.http.services.traefik-pages.loadbalancer.server.port=5000
 ```
 
 This doesn't need to be in the same file as Traefik, but it does need to be accessible to Traefik using a fixed hostname and IP. If Traefik is running in host mode (as I do), you'll need to bind `traefik-pages` to an internal interface, and listen to that.
