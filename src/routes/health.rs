@@ -1,7 +1,7 @@
 use actix_web::HttpResponse;
 
 pub async fn health() -> HttpResponse {
-    return HttpResponse::Ok().finish();
+    HttpResponse::Ok().finish()
 }
 
 #[cfg(test)]

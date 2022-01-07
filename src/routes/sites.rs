@@ -13,5 +13,5 @@ pub async fn sites_list(settings: web::Data<Settings>) -> HttpResponse {
         .map(Site::get_hostname)
         .collect::<Vec<String>>();
 
-    return HttpResponse::Ok().body(hostnames.join("\n") + "\n");
+    HttpResponse::Ok().body(hostnames.join("\n") + "\n")
 }
