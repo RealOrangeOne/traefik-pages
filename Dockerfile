@@ -9,7 +9,7 @@ COPY Cargo.lock /usr/src/traefik-pages/Cargo.lock
 RUN cargo build --release
 
 # Runtime
-FROM debian:slim
+FROM debian:stable-slim
 
 COPY --from=builder /usr/src/traefik-pages/target/release/traefik-pages /usr/local/bin/traefik-pages
 
