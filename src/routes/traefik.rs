@@ -7,7 +7,7 @@ use std::collections::HashMap;
 const DEFAULT_MIDDLEWARE_NAME: &str = "tp-default";
 
 fn get_router_name(site: &Site) -> String {
-    site.get_hostname().replace(".", "-")
+    site.get_hostname().replace('.', "-")
 }
 
 /// Routers look funny, so no point defining as a struct
